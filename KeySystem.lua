@@ -1,15 +1,19 @@
 local HttpService = game:GetService("HttpService")
 local request = (syn and syn.request) or (http and http.request) or request or http_request
-if not request then return end
+if not request then 
+    print("[Key-System] FEHLER: Dein Executor unterstützt keine HTTP-Anfragen!")
+    return 
+end
 
--- Liest den Key aus der ersten Zeile aus (sucht nach allem hinter "key:")
 local editorText = (get_editor_text and get_editor_text()) or (current_script and current_script()) or ""
 local enteredKey = editorText:match("%-%-%s*key%s*:%s*(%S+)")
 
 if not enteredKey or enteredKey == "" then 
-    print("[Key-System] Kein Key im Executor gefunden!")
+    print("[Key-System] FEHLER: Kein Key im Executor-Tab gefunden!")
     return 
 end
+
+print("[Key-System] Gesendeter Key: " .. tostring(enteredKey))
 
 local serverURL = "https://node7sndxpye-jpva--3000--4c73681d.local-corp.webcontainer.io/verify"
 local hwid = game:GetService("RbxAnalyticsService"):GetClientId()
@@ -23,9 +27,23 @@ local success, response = pcall(function()
     })
 end)
 
--- Wenn der Server "Success" zurückgibt, laden wir dein echtes Skript
-if success and response and response.Body == "Success" then
+-- HIER DRUCKEN WIR JETZT DIE GANZE WAHRHEIT IN DIE KONSOLE:
+if not success then
+    print("[Key-System] HTTP-Anfrage komplett fehlgeschlagen (pcall Error)!")
+    return
+end
+
+if response then
+    print("[Key-System] Server Status-Code: " .. tostring(response.StatusCode))
+    print("[Key-System] Server Antwort-Inhalt: '" .. tostring(response.Body) .. "'")
+else
+    print("[Key-System] Server hat überhaupt keine Antwort gesendet (response ist nil)!")
+end
+
+-- Echte Überprüfung:
+if response and response.Body == "Success" then
+    print("[Key-System] Key KORREKT! Lade echtes Skript...")
     loadstring(game:HttpGet("https://raw.githubusercontent.com/memoriesburnslow/KeySystem.lua/main/MainScript.lua"))()
 else
-    print("[Key-System] Zugriff verweigert! Key ist falsch oder abgelaufen.")
+    print("[Key-System] BLOCKIERT: Der Server hat kein 'Success' gesendet!")
 end

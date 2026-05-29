@@ -1,0 +1,33 @@
+local HttpService = game:GetService("HttpService")
+local request = (syn and syn.request) or (http and http.request) or request or http_request
+if not request then return end
+
+local editorText = ""
+if get_editor_text then
+    editorText = get_editor_text()
+elseif current_script then
+    editorText = current_script()
+end
+
+local enteredKey = editorText:match("%-%-%s*key%s*:%s*([%w%d]+)")
+if not enteredKey or enteredKey == "" then 
+    return
+end
+
+local serverURL = "https://node7sndxpye-jpva--3000--4c73681d.local-corp.webcontainer.io/verify"
+local hwid = game:GetService("RbxAnalyticsService"):GetClientId()
+
+local success, response = pcall(function()
+    return request({
+        Url = serverURL,
+        Method = "POST",
+        Headers = {["Content-Type"] = "application/json"},
+        Body = HttpService:JSONEncode({key = enteredKey, hwid = hwid})
+    })
+end)
+
+if not success or not response or response.Body ~= "Success" then
+    return 
+end
+
+loadstring(game:HttpGet("https://raw.githubusercontent.com/memoriesburnslow/KeySystem.lua/main/MainScript.lua"))()
